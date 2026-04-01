@@ -10,7 +10,6 @@ interface CourseCardProps {
     item: Course;
     index: number;
 }
-
 export const CourseCard = ({ item, index }: CourseCardProps) => {
     const { toggleBookmark, isBookmarked } = useBookmarks();
     const bookmarked = isBookmarked(item.id);
@@ -24,6 +23,7 @@ export const CourseCard = ({ item, index }: CourseCardProps) => {
             <TouchableOpacity 
                 className="bg-neutral-900 rounded-3xl overflow-hidden border border-neutral-800 shadow-sm"
                 activeOpacity={0.8}
+                
             >
                 <Image 
                     source={{ uri: item.image }} 
@@ -31,12 +31,10 @@ export const CourseCard = ({ item, index }: CourseCardProps) => {
                     contentFit="cover"
                 />
                 
-                {/* Duration Badge */}
                 <View className="absolute top-4 right-4 bg-black/60 px-3 py-1.5 rounded-xl border border-white/10 backdrop-blur-md">
                     <Text className="text-white text-xs font-bold">{item.duration}</Text>
                 </View>
 
-                {/* Bookmark Toggle */}
                 <TouchableOpacity 
                     onPress={() => toggleBookmark(item)}
                     className="absolute top-4 left-4 bg-black/40 p-2.5 rounded-full border border-white/10 backdrop-blur-md"

@@ -24,14 +24,21 @@ export default function Index() {
     const [refreshing, setRefreshing] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState("All");
 
+    
     const load = async (isRefreshing = false) => {
         if (isRefreshing) setRefreshing(true);
         else setLoading(true);
         
         try {
-            const { users, products } = await fetchData();
+            // Using Promise.all to ensure a minimum visible load time (800ms) for better feedback
+            const [{ users, products }] = await Promise.all([
+                fetchData(),
+                new Promise(resolve => setTimeout(resolve, 800))
+            ]);
+            console.log(products)
             const combined = combineCourses(products, users);
             setCourses(combined);
+            if (isRefreshing) console.log("Refresh Complete - Data updated");
         } catch (error) {
             console.error("Failed to load courses", error);
         } finally {
@@ -58,7 +65,7 @@ export default function Index() {
                         />
                         <View>
                             <Text className={"text-[20px] text-white font-bold tracking-widest"}>
-                                LUMINA
+                                L U M I N A
                             </Text>
                         </View>
                     </View>
@@ -111,7 +118,7 @@ export default function Index() {
         <SafeAreaView className={"flex-1 bg-black"}>
             <StatusBar style={"light"}/>
             
-            {loading ? (
+            {(loading || refreshing) ? (
                 <ScrollView contentContainerStyle={{ paddingTop: 20 }}>
                     <ListHeader />
                     <SkeletonCard />
@@ -126,12 +133,15 @@ export default function Index() {
                     ListHeaderComponent={ListHeader}
                     contentContainerStyle={{ paddingBottom: 60 }}
                     estimatedItemSize={360}
+                    onRefresh={() => load(true)}
+                    refreshing={refreshing}
+                    alwaysBounceVertical={true}
                     refreshControl={
                         <RefreshControl 
                             refreshing={refreshing} 
                             onRefresh={() => load(true)} 
-                            tintColor="#6366F1"
-                            colors={["#6366F1"]}
+                            tintColor="white"
+                            colors={["white"]}
                         />
                     }
                 />

@@ -5,6 +5,7 @@ import { storage } from "../Storage/mmkv";
 import {Alert} from "react-native";
 import {loginSchema, LoginFormData, signupFormData} from "@/src/validation/authSchema";
 import {router} from "expo-router";
+
 interface AuthContextType {
     user: any;
     loading: boolean;
@@ -22,14 +23,36 @@ export const AuthProvider = ({ children }: any) => {
     useEffect(() => {
         const restoreSession = async () => {
             try {
-                // Read user profile from MMKV (Synchronous)
+                
                 const savedUser = storage.getString("user");
                 
-                // Keep tokens in SecureStore (Asynchronous)
+                
                 const token = await SecureStore.getItemAsync("accessToken");
 
-                if (savedUser && token) {
-                    setUser(JSON.parse(savedUser));
+                if (token) {
+                    try {
+                       
+                        const res = await axios.get("https://api.freeapi.app/api/v1/users/current-user", {
+                            headers: {
+                                Authorization: `Bearer ${token}`
+                            }
+                        });
+                        
+                        const freshUser = res.data.data;
+                        setUser(freshUser);
+                        storage.set("user", JSON.stringify(freshUser));
+                        console.log("Session Validated:", freshUser.username);
+                    } catch (apiError: any) {
+                        if (apiError.response?.status === 401 || apiError.response?.status === 403) {
+                            console.log("Session Invalid - Logging out");
+                            await logout();
+                        } else {
+                            console.log("Validation failed (Network/Other) - Falling back to local profile");
+                            if (savedUser) setUser(JSON.parse(savedUser));
+                        }
+                    }
+                } else {
+                    setUser(null);
                 }
             } catch (error) {
                 console.log("Restore session error:", error);
@@ -58,7 +81,6 @@ export const AuthProvider = ({ children }: any) => {
             await SecureStore.setItemAsync("accessToken", accessToken);
             await SecureStore.setItemAsync("refreshToken", refreshToken);
 
-            // Save user profile to MMKV (Synchronous)
             storage.set("user", JSON.stringify(user));
 
             setUser(user);
@@ -66,13 +88,10 @@ export const AuthProvider = ({ children }: any) => {
             Alert.alert("Success","Welcome Back!");
             router.replace("/(root)/(tabs)")
 
-
-
         }catch(error:any){
-            Alert.alert(error.response.data.message,)
+            Alert.alert("Login Failed", error.response?.data?.message || "Please check your credentials.");
             console.log(error?.response?.data);
         }
-
 
     };
 
@@ -93,12 +112,10 @@ export const AuthProvider = ({ children }: any) => {
 
             );
             console.log("User Registered:", res.data);
-            Alert.alert("Success","Account successfully created Please Login!");
-
-
+            Alert.alert("Success", "Account successfully created! Please login.");
 
         }catch(error:any){
-            Alert.alert(error.response.data.message,)
+            Alert.alert("Signup Failed", error.response?.data?.message || "Something went wrong.");
             console.log(error?.response?.data);
         }
 
@@ -108,7 +125,6 @@ export const AuthProvider = ({ children }: any) => {
         await SecureStore.deleteItemAsync("accessToken");
         await SecureStore.deleteItemAsync("refreshToken");
 
-        // Clear user data from MMKV
         storage.remove("user");
 
         setUser(null);

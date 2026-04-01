@@ -27,7 +27,7 @@ export interface Course {
     image: string;
     rating: number;
     price: number;
-    duration: string; // Mocked
+    duration: string;
     instructor: {
         name: string;
         avatar: string;
@@ -62,11 +62,8 @@ export const combineCourses = (products: Product[], users: User[]): Course[] => 
     return products.map((product, index) => {
         const instructor = users[index % users.length];
 
-        // The default thumbnails in this API (cdn.dummyjson.com) often return 404.
-        // We'll use a reliable placeholder service with a consistent seed based on the product ID.
         const productImage = `https://picsum.photos/seed/${product.id}/600/400`;
         
-        // Mocking duration based on product ID for consistent results
         const hours = (product.id % 20) + 2;
         const mins = (product.id % 60);
 

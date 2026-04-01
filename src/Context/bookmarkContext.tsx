@@ -1,6 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { storage } from '../Storage/mmkv';
 import { Course } from '../API/Random_APi';
+import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+    }),
+});
 
 interface BookmarkContextType {
     bookmarks: Course[];
@@ -14,6 +25,13 @@ export const BookmarkProvider = ({ children }: { children: ReactNode }) => {
     const [bookmarks, setBookmarks] = useState<Course[]>([]);
 
     useEffect(() => {
+        const checkPermissions = async () => {
+            const { status } = await Notifications.getPermissionsAsync();
+            if (status !== 'granted') {
+                await Notifications.requestPermissionsAsync();
+            }
+        };
+
         const savedBookmarks = storage.getString('bookmarks');
         if (savedBookmarks) {
             try {
@@ -32,6 +50,17 @@ export const BookmarkProvider = ({ children }: { children: ReactNode }) => {
                 updated = prev.filter((item) => item.id !== course.id);
             } else {
                 updated = [course, ...prev];
+                
+                if (updated.length === 5) {
+                    Notifications.scheduleNotificationAsync({
+                        content: {
+                            title: "Achievement Unlocked! 🎯",
+                            body: "You've saved 5 courses to your library! Ready to dive in?",
+                            data: { type: 'milestone', count: 5 },
+                        },
+                        trigger: null,
+                    });
+                }
             }
             storage.set('bookmarks', JSON.stringify(updated));
             return updated;

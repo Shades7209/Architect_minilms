@@ -5,22 +5,68 @@ import { Platform } from "react-native";
 
 function TabsLayoutAndroid() {
     return (
-        <Tabs screenOptions={{headerShown: false, tabBarActiveTintColor: '#007AFF'}}>
+        <Tabs 
+            screenOptions={{
+                headerShown: false, 
+                tabBarActiveTintColor: '#6366F1',
+                tabBarInactiveTintColor: '#94A3B8',
+                tabBarStyle: {
+                    position: 'absolute',
+                    width: '80%',
+                    marginLeft:"10%",
+                    bottom: 20,
+                    height: 65,
+                    backgroundColor: '#0F172A',
+                    borderRadius: 30,
+                    borderTopWidth: 0,
+                    paddingTop: 10,
+                    paddingBottom: 10,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 10 },
+                    shadowOpacity: 0.5,
+                    shadowRadius: 20,
+                },
+                tabBarLabelStyle: {
+                    fontSize: 10,
+                    fontWeight: 'bold',
+                    marginTop: -5,
+                    marginBottom: 5,
+                },
+            }}
+        >
             <Tabs.Screen 
                 name="index" 
                 options={{
-                    title: "Home",
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="home" size={size} color={color} />
+                    title: "Learn",
+                    tabBarIcon: ({ color, size, focused }) => (
+                        <Ionicons name={focused ? "school" : "school-outline"} size={22} color={color} />
                     ),
                 }} 
             />
             <Tabs.Screen 
-                name="settings" 
+                name="Search" 
                 options={{
-                    title: "Settings",
-                    tabBarIcon: ({ color, size }) => (
-                        <Ionicons name="settings" size={size} color={color} />
+                    title: "Search",
+                    tabBarIcon: ({ color, size, focused }) => (
+                        <Ionicons name={focused ? "search" : "search-outline"} size={22} color={color} />
+                    ),
+                }} 
+            />
+            <Tabs.Screen 
+                name="BookMark" 
+                options={{
+                    title: "Saved",
+                    tabBarIcon: ({ color, size, focused }) => (
+                        <Ionicons name={focused ? "bookmark" : "bookmark-outline"} size={22} color={color} />
+                    ),
+                }} 
+            />
+            <Tabs.Screen 
+                name="Profile" 
+                options={{
+                    title: "Profile",
+                    tabBarIcon: ({ color, size, focused }) => (
+                        <Ionicons name={focused ? "person" : "person-outline"} size={22} color={color} />
                     ),
                 }} 
             />
