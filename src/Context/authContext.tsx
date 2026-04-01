@@ -1,6 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { storage } from "../Storage/mmkv";
 import {Alert} from "react-native";
 import {loginSchema, LoginFormData, signupFormData} from "@/src/validation/authSchema";
 import {router} from "expo-router";
@@ -21,7 +22,10 @@ export const AuthProvider = ({ children }: any) => {
     useEffect(() => {
         const restoreSession = async () => {
             try {
-                const savedUser = await SecureStore.getItemAsync("user");
+                // Read user profile from MMKV (Synchronous)
+                const savedUser = storage.getString("user");
+                
+                // Keep tokens in SecureStore (Asynchronous)
                 const token = await SecureStore.getItemAsync("accessToken");
 
                 if (savedUser && token) {
@@ -53,7 +57,10 @@ export const AuthProvider = ({ children }: any) => {
             const { accessToken, refreshToken, user } = res.data.data;
             await SecureStore.setItemAsync("accessToken", accessToken);
             await SecureStore.setItemAsync("refreshToken", refreshToken);
-            await SecureStore.setItemAsync("user", JSON.stringify(user));
+
+            // Save user profile to MMKV (Synchronous)
+            storage.set("user", JSON.stringify(user));
+
             setUser(user);
             console.log("Login Success:", res.data);
             Alert.alert("Success","Welcome Back!");
@@ -100,6 +107,9 @@ export const AuthProvider = ({ children }: any) => {
     const logout = async () => {
         await SecureStore.deleteItemAsync("accessToken");
         await SecureStore.deleteItemAsync("refreshToken");
+
+        // Clear user data from MMKV
+        storage.remove("user");
 
         setUser(null);
     };
