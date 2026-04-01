@@ -1,4 +1,4 @@
-import {Text, TouchableOpacity, View, useWindowDimensions, RefreshControl, ScrollView} from "react-native";
+import {Text, TouchableOpacity, View,  RefreshControl, ScrollView} from "react-native";
 import {useAuth} from "@/src/Context/authContext";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {StatusBar} from "expo-status-bar";
@@ -16,8 +16,7 @@ const CATEGORIES = ["All", "Development", "Design", "Business", "Marketing", "Mu
 
 export default function Index() {
     const {user} = useAuth()
-    const {width, height} = useWindowDimensions()
-    const isLandscape = width > height;
+
 
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
@@ -30,7 +29,7 @@ export default function Index() {
         else setLoading(true);
         
         try {
-            // Using Promise.all to ensure a minimum visible load time (800ms) for better feedback
+
             const [{ users, products }] = await Promise.all([
                 fetchData(),
                 new Promise(resolve => setTimeout(resolve, 800))
