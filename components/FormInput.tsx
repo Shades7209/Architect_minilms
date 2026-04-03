@@ -1,4 +1,4 @@
-// src/components/FormInput.tsx
+
 import { View, TextInput, Text,useWindowDimensions } from "react-native";
 import { Controller } from "react-hook-form";
 
@@ -27,7 +27,6 @@ export const FormInput = ({
                 <View style={{ marginBottom: 12 }}>
                     <TextInput
                         placeholder={placeholder}
-
                         placeholderTextColor={"#64748B"}
                         value={value}
                         onChangeText={onChange}

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { storage } from '../Storage/mmkv';
 import { Course } from '../API/Random_APi';
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
+
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
