@@ -10,7 +10,12 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.shades7209.minilms"
+      "bundleIdentifier": "com.shades7209.minilms",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "LUMINA needs access to your photos to update your profile picture.",
+        "NSCameraUsageDescription": "LUMINA needs camera access to take profile pictures.",
+        "NSPhotoLibraryAddUsageDescription": "LUMINA saves images to your photo library."
+      }
     },
     "android": {
       "package": "com.shades7209.minilms",
@@ -42,7 +47,13 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "LUMINA needs access to your photos to update your profile picture."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -21,7 +21,7 @@ const Search = () => {
     const [recentSearches, setRecentSearches] = useState<string[]>([]);
     const inputRef = useRef<TextInput>(null);
 
-    // Load courses & recent searches on mount
+    
     useEffect(() => {
         const loadData = async () => {
             setLoading(true);
@@ -39,7 +39,7 @@ const Search = () => {
             }
         };
 
-        // Load recent searches from storage
+        
         const saved = storage.getString(RECENT_SEARCHES_KEY);
         if (saved) {
             try {
@@ -49,11 +49,11 @@ const Search = () => {
 
         loadData();
 
-        // Auto-focus search input
+        
         setTimeout(() => inputRef.current?.focus(), 400);
     }, []);
 
-    // Save a search term to recents
+    
     const saveRecentSearch = useCallback((term: string) => {
         const trimmed = term.trim();
         if (!trimmed) return;
@@ -70,7 +70,7 @@ const Search = () => {
         storage.set(RECENT_SEARCHES_KEY, JSON.stringify([]));
     }, []);
 
-    // Filter courses based on query
+    
     const filteredCourses = useMemo(() => {
         const trimmed = query.trim().toLowerCase();
         if (!trimmed) return [];
@@ -102,7 +102,7 @@ const Search = () => {
     const showResults = query.trim().length > 0;
     const noResults = showResults && filteredCourses.length === 0 && !loading;
 
-    // ── Results count header (inside list) ──
+   
     const ResultsHeader = useCallback(() => (
         <View className="px-[24px] pt-2 pb-2">
             {showResults && !loading && (
@@ -120,7 +120,7 @@ const Search = () => {
         <SafeAreaView className="flex-1 bg-black">
             <StatusBar style="light" />
 
-            {/* ── Persistent Search Bar ── */}
+            
             <View className="px-[24px] pt-4 pb-2">
                 <Animated.View
                     entering={FadeInDown.delay(100).springify()}
@@ -148,7 +148,7 @@ const Search = () => {
                 </Animated.View>
             </View>
 
-            {/* ── Content Area ── */}
+            
             {loading ? (
                 <ScrollView>
                     <SkeletonCard />
@@ -186,7 +186,7 @@ const Search = () => {
                 )
             ) : (
                 <ScrollView keyboardDismissMode="on-drag" className="flex-1">
-                    {/* Idle state */}
+                   
                     <Animated.View entering={FadeIn.delay(200)}>
                         <View className="items-center pt-10 pb-4">
                             <View className="bg-neutral-900/50 p-6 rounded-full mb-5 border border-neutral-800/50">
@@ -197,7 +197,7 @@ const Search = () => {
                             </Text>
                         </View>
 
-                        {/* Recent Searches */}
+                       
                         {recentSearches.length > 0 && (
                             <View className="px-[24px] mt-4">
                                 <View className="flex-row justify-between items-center mb-4">
@@ -222,7 +222,7 @@ const Search = () => {
                             </View>
                         )}
 
-                        {/* Popular Topics */}
+                        
                         <View className="px-[24px] mt-6">
                             <Text className="text-white text-lg font-bold mb-4">Popular Topics</Text>
                             <View className="flex-row flex-wrap gap-3">

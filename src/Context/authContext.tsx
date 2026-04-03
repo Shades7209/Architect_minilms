@@ -12,6 +12,7 @@ interface AuthContextType {
     login: (data: any) => Promise<void>;
     signup: (data: any) => Promise<void>;
     logout: () => Promise<void>;
+    updateAvatar: (imageUri: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -129,8 +130,50 @@ export const AuthProvider = ({ children }: any) => {
 
         setUser(null);
     };
+
+    const updateAvatar = async (imageUri: string) => {
+        const token = await SecureStore.getItemAsync("accessToken");
+        if (!token) {
+            Alert.alert("Error", "You must be logged in to update your avatar.");
+            return;
+        }
+
+        const formData = new FormData();
+        const fileName = imageUri.split('/').pop() || 'avatar.jpg';
+        const fileType = fileName.endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+        formData.append('avatar', {
+            uri: imageUri,
+            name: fileName,
+            type: fileType,
+        } as any);
+
+        try {
+            await axios.patch(
+                "https://api.freeapi.app/api/v1/users/avatar",
+                formData,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'multipart/form-data',
+                    },
+                }
+            );
+
+            
+            const res = await axios.get("https://api.freeapi.app/api/v1/users/current-user", {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            const freshUser = res.data.data;
+            setUser(freshUser);
+            storage.set("user", JSON.stringify(freshUser));
+        } catch (error: any) {
+            console.error("Avatar upload failed:", error?.response?.data || error);
+            throw error;
+        }
+    };
     return (
-        <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, signup, logout, updateAvatar }}>
             {children}
         </AuthContext.Provider>
     );
