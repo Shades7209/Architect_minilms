@@ -48,6 +48,7 @@ const SignIn = () => {
     }
     const onSubmit1 = async (data: signupFormData) =>{
         await signup(data)
+        setLoginMethod("login")
     }
 
 

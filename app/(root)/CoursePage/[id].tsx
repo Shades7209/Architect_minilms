@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
-import React, { useMemo } from 'react';
+import { View, Text, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
+import React, { useMemo, useState } from 'react';
 import { useLocalSearchParams, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -29,16 +29,21 @@ const CoursePage = () => {
     const bookmarked = isBookmarked(id);
 
     const scrollY = useSharedValue(0);
+    const [isEnrolling, setIsEnrolling] = useState(false);
 
     const handleEnroll = () => {
-        router.push({
-            pathname: "/webview",
-            params: {
-                id: id.toString(),
-                title: title,
-                instructorName: instructorName
-            }
-        });
+        setIsEnrolling(true);
+        setTimeout(() => {
+            setIsEnrolling(false);
+            router.push({
+                pathname: "/webview",
+                params: {
+                    id: id.toString(),
+                    title: title,
+                    instructorName: instructorName
+                }
+            });
+        }, 600);
     };
 
     const courseItem = useMemo(() => ({
@@ -167,6 +172,7 @@ const CoursePage = () => {
                 <View className="px-6 py-4">
                     <TouchableOpacity 
                         onPress={handleEnroll}
+                        disabled={isEnrolling}
                         className="bg-indigo-600 h-16 rounded-2xl items-center justify-center shadow-xl shadow-indigo-600/20"
                         activeOpacity={0.8}
                     >
@@ -177,8 +183,14 @@ const CoursePage = () => {
                             style={{ position: 'absolute', inset: 0, borderRadius: 16 }}
                         />
                         <View className="flex-row items-center gap-3">
-                            <Text className="text-white text-xl font-bold">Enroll in Course</Text>
-                            <Ionicons name="arrow-forward" size={24} color="white" />
+                            {isEnrolling ? (
+                                <ActivityIndicator color="white" />
+                            ) : (
+                                <>
+                                    <Text className="text-white text-xl font-bold">Enroll in Course</Text>
+                                    <Ionicons name="arrow-forward" size={24} color="white" />
+                                </>
+                            )}
                         </View>
                     </TouchableOpacity>
                 </View>

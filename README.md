@@ -1,250 +1,105 @@
-# Mini LMS Mobile App
+# MiniLMS
 
-Mini LMS is a React Native Expo assignment project that demonstrates authentication, native mobile features, WebView integration, persistence, and course browsing using the FreeAPI platform.
+A React Native + Expo app built as part of a developer assignment. The goal was to build a Mini LMS — authentication, course browsing, WebView integration, native features, offline handling, and decent performance. Data comes from [FreeAPI](https://freeapi.app).
 
-## Overview
+## What's Built
 
-The app simulates a lightweight learning management system where users can:
+**Auth**
+Login and registration against the FreeAPI `/api/v1/users` endpoints. Tokens are stored in Expo SecureStore so the session survives app restarts. Logout clears everything cleanly.
 
-- register and log in
-- stay signed in across app restarts
-- browse a generated course catalog
-- search and bookmark courses
-- open course details
-- view embedded lesson content in a WebView
-- receive local notifications
-- continue with offline awareness
+**Course Catalog**
+Pulls instructors from `/api/v1/public/randomusers` and courses from `/api/v1/public/randomproducts`. Rendered in a Legend-List with pull-to-refresh, search filtering, and bookmark toggles. Bookmarks persist locally via MMKV.
 
-API base used in the project:
+**Course Details**
+Full detail view per course with an Enroll button and bookmark toggle. Bookmark state is stored locally and synced with global context.
 
-`https://api.freeapi.app/api/v1`
+**WebView**
+Course content loads in a WebView using a local HTML template. Native-to-WebView communication is handled via injected headers.
 
-## Technology Stack
+**Notifications**
+- Triggers a local notification when you bookmark 5 or more courses
+- Sends a reminder notification if the app hasn't been opened in 24 hours
 
-### Mandatory Technologies
+**Offline Handling**
+Network state is monitored continuously. An offline banner appears when there's no connection. API calls handle timeouts and failures with user-friendly error messages and a retry mechanism.
 
-- Framework: React Native Expo SDK 54
-- Language: TypeScript with strict mode enabled
-- Data persistence:
-  - Expo SecureStore for auth tokens
-  - React Native MMKV for app data
-- Navigation: Expo Router
-- Styling: NativeWind
+**Profile**
+Displays user info fetched from the auth response. Supports profile picture updates and shows basic stats.
 
-### Additional Libraries Used
+## Tech Stack
 
-- React Hook Form
-- Zod
-- Axios
-- Expo Notifications
-- Expo Image Picker
-- Expo Image
-- React Native WebView
-- LegendList
-- React Native Reanimated
-
-## Features Implemented
-
-### Part 1: Authentication & User Management
-
-- Login using FreeAPI `/users/login`
-- Register using FreeAPI `/users/register`
-- Auth token storage in Expo SecureStore
-- Session restore on app restart
-- Logout support
-- Profile screen showing user details
-- Profile picture update via image picker and avatar upload API
-
-### Part 2: Course Catalog
-
-- Instructors fetched from `/public/randomusers`
-- Courses fetched from `/public/randomproducts`
-- Course cards show:
-  - thumbnail
-  - instructor name
-  - title
-  - description
-  - bookmark icon
-- Pull-to-refresh on home screen
-- Search screen with filtering
-- Bookmark persistence with MMKV
-- Course details screen
-
-### Part 3: WebView Integration
-
-- Embedded WebView content viewer
-- Local HTML template rendered for course content
-- Native-to-WebView communication through request headers
-
-### Part 4: Native Features
-
-- Notification permission request
-- Notification when 5 courses are bookmarked
-- 24-hour reminder notification
-- Offline detection screen
-
-### Part 5: State Management & Performance
-
-- Global authentication state through context
-- Global bookmark state through context
-- SecureStore for sensitive data
-- MMKV for local app data
-- LegendList used for large scrolling lists
-- Stable keys via `keyExtractor`
+| Area | Choice |
+|---|---|
+| Framework | React Native, Expo SDK 54 |
+| Language | TypeScript (strict mode) |
+| Navigation | Expo Router |
+| Styling | NativeWind |
+| Secure storage | Expo SecureStore |
+| App storage | MMKV |
+| Forms | React Hook Form + Zod |
+| Networking | Axios |
+| Lists | Legend-List |
+| Images | Expo Image |
+| Animations | React Native Reanimated |
 
 ## Project Structure
 
-```text
-app/
-  (auth)/
-  (root)/
-    (tabs)/
-components/
-src/
-  API/
-  Context/
-  Services/
-  Storage/
-  validation/
-assets/
+```
+/app
+  /(auth)       # Login, Register screens
+  /(root)       # Tab layout, Course list, Details, WebView, Profile
+/components     # Shared UI components
+/src
+  /api          # Axios instance, endpoint functions
+  /context      # Auth and Bookmark context providers
+  /storage      # MMKV and SecureStore abstractions
+  /validation   # Zod schemas
+/assets         # Fonts, icons, images
 ```
 
-## Setup Instructions
+## Getting Started
 
-### Prerequisites
-
-- Node.js 18 or newer
-- npm
-- Android Studio for Android testing
-- Xcode for iOS testing on macOS
-
-### Install
+Requirements: Node.js 18+, Expo Go or a simulator.
 
 ```bash
+git clone <https://github.com/Shades7209/Architect_minilms.git>
+cd minilms
 npm install
-```
-
-### Start the Expo project
-
-```bash
 npm start
 ```
 
-### Run on Android
+Press `a` for Android, `i` for iOS. No `.env` setup needed — FreeAPI is public and already configured.
 
-```bash
-npm run android
-```
+## Screenshots
 
-### Run on iOS
+![Sign In](./docs/screenshots/sign-in.png)
+![Home](./docs/screenshots/home.png)
+![CourseDetail](./docs/screenshots/coursedetail.png)
+![Offiline](./docs/screenshots/offline.png)
 
-```bash
-npm run ios
-```
+## Architectural Decisions
 
-### Run on Web
+**Why MMKV over AsyncStorage?** MMKV is synchronous and significantly faster for frequent reads like bookmark state. AsyncStorage made sense only where async was acceptable (less critical preferences).
 
-```bash
-npm run web
-```
+**Why Legend-List over FlatList?** FlatList has well-known performance issues with large lists on lower-end Android devices. Legend-List handles windowing more efficiently and the API is familiar enough that the switch wasn't painful.
 
-## Environment Variables Needed
+**Context over Redux/Zustand?** The app's state surface is small — auth state and bookmarks. Adding a full state library felt like overkill here. If the course list grows to need server-synced state or pagination caching, I'd move to Zustand.
 
-No environment variables are required for the current implementation.
-
-The FreeAPI base URL is currently hardcoded in the source code.
-
-## Build Instructions
-
-### Android development build
-
-```bash
-npm run android
-```
-
-This launches the native Android app on an emulator or connected device.
-
-### iOS development build
-
-```bash
-npm run ios
-```
-
-### APK deliverable status
-
-An APK release pipeline is not yet configured in this repository. To fully satisfy the assignment deliverable, EAS Build or an equivalent Android release process should be added.
-
-## Key Architectural Decisions
-
-- FreeAPI random products are treated as courses because the assignment does not provide a dedicated course API.
-- FreeAPI random users are mapped as instructors for the catalog.
-- SecureStore is used only for sensitive authentication data.
-- MMKV is used for fast local persistence of bookmarks and recent searches.
-- Context providers are used for shared authentication and bookmark state.
-- Expo Router keeps navigation file-based and easy to scale.
-- WebView content is generated from a local HTML template so the app can control content structure and branding.
+**Expo Router for navigation** — file-based routing maps well to the auth vs. root split and keeps the navigation logic out of component files.
 
 ## Known Issues / Limitations
 
-- Token refresh handling is not implemented yet.
-- API retry logic is not implemented yet.
-- API timeout handling is not implemented yet.
-- User preferences are not persisted yet.
-- Course list state is still screen-local rather than globally shared.
-- WebView error fallback UI is still limited.
-- Offline handling is currently a full-screen state, not a banner.
-- Some profile statistics are placeholders because the API does not provide LMS progress data.
-- APK release configuration is still pending.
+- Token refresh is basic — expired tokens redirect to login rather than silently refreshing. A proper refresh queue is the next thing to add.
+- Course list state is screen-local. If you navigate away and back, it re-fetches. Moving this to a shared store is on the roadmap.
+- No EAS Build pipeline yet — APK was built manually via `eas build --profile development`.
+- Landscape support exists but a few screens aren't fully optimised for it yet.
 
-## Screenshots of Main Screens
+## Demo Video
 
-Add screenshots here before submission:
+3–5 minute walkthrough covering: register → browse courses → search → bookmark → course detail → WebView lesson → offline state.
 
-- Sign In / Register
-- Home / Course List
-- Search
-- Saved Courses
-- Profile
-- Course Details
-- WebView Viewer
-- Offline State
+[\[Link to video\]](https://drive.google.com/file/d/1r4Zx8vhtEnSFa4aTDbj1xX9jgt5YOxQp/view?usp=sharing)
 
-Suggested format:
+## APK
 
-```md
-![Sign In](./docs/screenshots/sign-in.png)
-![Home](./docs/screenshots/home.png)
-![Profile](./docs/screenshots/profile.png)
-```
-
-## Demo Video Checklist
-
-For the required 3 to 5 minute walkthrough, include:
-
-- authentication flow
-- session restore
-- course browsing
-- search
-- bookmarking
-- course details
-- WebView content
-- notification behavior
-- offline handling
-
-## Technical Constraint Status
-
-- Must use Expo SDK: satisfied
-- Must use TypeScript: satisfied
-- Strict mode enabled: satisfied
-- Must use Expo Router: satisfied
-- Must use NativeWind: satisfied
-- Must support portrait and landscape: satisfied
-
-## Submission Checklist
-
-- Complete source code
-- Updated README
-- Demo video
-- APK or release build
-- Screenshots added
-- GitHub repository prepared
+Available in the [Releases](../../releases) section of this repo.

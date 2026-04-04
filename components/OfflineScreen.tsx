@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import Animated, { 
     useSharedValue, 
     useAnimatedStyle, 
@@ -10,6 +10,7 @@ import Animated, {
     Extrapolate
 } from 'react-native-reanimated';
 import { Feather } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 const OfflineScreen = () => {
     const pulse = useSharedValue(1);
@@ -45,9 +46,12 @@ const OfflineScreen = () => {
                 <Animated.View 
                     style={[{ position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: '#3b82f6' }, animatedCircleStyle]} 
                 />
-                <Animated.View style={[{ alignItems: 'center', justifyContent: 'center' }, animatedIconStyle]}>
+                <Animated.View style={[{ alignItems: 'center', justifyContent: 'center', zIndex: 10 }, animatedIconStyle]}>
                     <View className="bg-blue-500 p-8 rounded-full shadow-lg shadow-blue-500/50">
-                        <Feather name="wifi-off" size={48} color="white" />
+                        <Image
+                        source={require('../assets/images/WiFi Off Icon.png')}
+                        style={{width:48,height:48}}
+                        />
                     </View>
                 </Animated.View>
             </View>
@@ -57,7 +61,7 @@ const OfflineScreen = () => {
                     No Internet Connection
                 </Text>
                 <Text className="mt-3 text-zinc-500 dark:text-zinc-400 text-center max-w-[280px] leading-6">
-                    Please check your network settings and try again. The app will automatically restore once you're back online.
+                    Please check your network settings and try again. The app will automatically restore once you&apos;re back online.
                 </Text>
             </View>
             
