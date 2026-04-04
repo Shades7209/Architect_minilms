@@ -3,7 +3,7 @@ import axios from "axios";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { storage } from "../Storage/mmkv";
 import {Alert} from "react-native";
-import {loginSchema, LoginFormData, signupFormData} from "@/src/validation/authSchema";
+import {LoginFormData, signupFormData} from "@/src/validation/authSchema";
 import {router} from "expo-router";
 
 interface AuthContextType {
@@ -21,42 +21,109 @@ export const AuthProvider = ({ children }: any) => {
     const [user, setUser] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
 
+    const refreshAccessToken = async () => {
+        const refreshToken = await SecureStore.getItemAsync("refreshToken");
+
+        if (!refreshToken) {
+            await logout();
+            return null;
+        }
+
+        try {
+            const res = await axios.post(
+                "https://api.freeapi.app/api/v1/users/refresh-token",
+                { refreshToken },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }
+            );
+
+            const nextAccessToken = res.data.data?.accessToken;
+            const nextRefreshToken = res.data.data?.refreshToken;
+
+            if (!nextAccessToken) {
+                await logout();
+                return null;
+            }
+
+            await SecureStore.setItemAsync("accessToken", nextAccessToken);
+
+            if (nextRefreshToken) {
+                await SecureStore.setItemAsync("refreshToken", nextRefreshToken);
+            }
+
+            return nextAccessToken;
+        } catch {
+            await logout();
+            return null;
+        }
+    };
+
+    const authorizedRequest = async <T,>(request: (token: string) => Promise<T>): Promise<T> => {
+        const accessToken = await SecureStore.getItemAsync("accessToken");
+
+        if (!accessToken) {
+            await logout();
+            throw new Error("No access token found");
+        }
+
+        try {
+            return await request(accessToken);
+        } catch (error: any) {
+            const status = error?.response?.status;
+
+            if (status === 401 || status === 403) {
+                const nextAccessToken = await refreshAccessToken();
+
+                if (!nextAccessToken) {
+                    throw error;
+                }
+
+                return request(nextAccessToken);
+            }
+
+            if (status === 404) {
+                await logout();
+            }
+
+            throw error;
+        }
+    };
+
     useEffect(() => {
         const restoreSession = async () => {
+            const savedUser = storage.getString("user");
+
             try {
-                
-                const savedUser = storage.getString("user");
-                
-                
                 const token = await SecureStore.getItemAsync("accessToken");
 
                 if (token) {
                     try {
-                       
-                        const res = await axios.get("https://api.freeapi.app/api/v1/users/current-user", {
-                            headers: {
-                                Authorization: `Bearer ${token}`
-                            }
-                        });
+                        const res = await authorizedRequest((validToken) =>
+                            axios.get("https://api.freeapi.app/api/v1/users/current-user", {
+                                headers: {
+                                    Authorization: `Bearer ${validToken}`
+                                }
+                            })
+                        );
                         
                         const freshUser = res.data.data;
                         setUser(freshUser);
                         storage.set("user", JSON.stringify(freshUser));
-                        console.log("Session Validated:", freshUser.username);
                     } catch (apiError: any) {
                         if (apiError.response?.status === 401 || apiError.response?.status === 403) {
-                            console.log("Session Invalid - Logging out");
                             await logout();
                         } else {
-                            console.log("Validation failed (Network/Other) - Falling back to local profile");
                             if (savedUser) setUser(JSON.parse(savedUser));
                         }
                     }
                 } else {
                     setUser(null);
                 }
-            } catch (error) {
-                console.log("Restore session error:", error);
+            } catch {
+                if (savedUser) setUser(JSON.parse(savedUser));
             } finally {
                 setLoading(false);
             }
@@ -85,20 +152,18 @@ export const AuthProvider = ({ children }: any) => {
             storage.set("user", JSON.stringify(user));
 
             setUser(user);
-            console.log("Login Success:", res.data);
             Alert.alert("Success","Welcome Back!");
             router.replace("/(root)/(tabs)")
 
         }catch(error:any){
             Alert.alert("Login Failed", error.response?.data?.message || "Please check your credentials.");
-            console.log(error?.response?.data);
         }
 
     };
 
     const signup = async (data: signupFormData) => {
         try{
-            const res = await axios.post(
+            await axios.post(
                 "https://api.freeapi.app/api/v1/users/register",{
                     name: data.name,
                     email: data.email,
@@ -112,12 +177,10 @@ export const AuthProvider = ({ children }: any) => {
 
 
             );
-            console.log("User Registered:", res.data);
             Alert.alert("Success", "Account successfully created! Please login.");
 
         }catch(error:any){
             Alert.alert("Signup Failed", error.response?.data?.message || "Something went wrong.");
-            console.log(error?.response?.data);
         }
 
     };
@@ -132,8 +195,8 @@ export const AuthProvider = ({ children }: any) => {
     };
 
     const updateAvatar = async (imageUri: string) => {
-        const token = await SecureStore.getItemAsync("accessToken");
-        if (!token) {
+        const accessToken = await SecureStore.getItemAsync("accessToken");
+        if (!accessToken) {
             Alert.alert("Error", "You must be logged in to update your avatar.");
             return;
         }
@@ -149,26 +212,28 @@ export const AuthProvider = ({ children }: any) => {
         } as any);
 
         try {
-            await axios.patch(
-                "https://api.freeapi.app/api/v1/users/avatar",
-                formData,
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'multipart/form-data',
-                    },
-                }
+            await authorizedRequest((validToken) =>
+                axios.patch(
+                    "https://api.freeapi.app/api/v1/users/avatar",
+                    formData,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${validToken}`,
+                            'Content-Type': 'multipart/form-data',
+                        },
+                    }
+                )
             );
 
-            
-            const res = await axios.get("https://api.freeapi.app/api/v1/users/current-user", {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await authorizedRequest((validToken) =>
+                axios.get("https://api.freeapi.app/api/v1/users/current-user", {
+                    headers: { Authorization: `Bearer ${validToken}` },
+                })
+            );
             const freshUser = res.data.data;
             setUser(freshUser);
             storage.set("user", JSON.stringify(freshUser));
         } catch (error: any) {
-            console.error("Avatar upload failed:", error?.response?.data || error);
             throw error;
         }
     };

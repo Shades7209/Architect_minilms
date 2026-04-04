@@ -32,8 +32,7 @@ const Search = () => {
                 ]);
                 const combined = combineCourses(products, users);
                 setCourses(combined);
-            } catch (error) {
-                console.error('Failed to load courses for search', error);
+            } catch {
             } finally {
                 setLoading(false);
             }

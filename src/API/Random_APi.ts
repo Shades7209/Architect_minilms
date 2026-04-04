@@ -37,21 +37,50 @@ export interface Course {
 
 const API = axios.create({
     baseURL: "https://api.freeapi.app/api/v1",
+    timeout: 8000,
 });
+
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 600;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const shouldRetry = (error: unknown) => {
+    if (!axios.isAxiosError(error)) return false;
+
+    if (error.code === "ECONNABORTED") return true;
+    if (!error.response) return true;
+
+    const status = error.response.status;
+    return status === 429 || status >= 500;
+};
+
+const requestWithRetry = async <T>(request: () => Promise<T>, retries = MAX_RETRIES): Promise<T> => {
+    try {
+        return await request();
+    } catch (error) {
+        if (!shouldRetry(error) || retries <= 0) {
+            throw error;
+        }
+
+        const attempt = MAX_RETRIES - retries + 1;
+        await sleep(RETRY_DELAY_MS * attempt);
+        return requestWithRetry(request, retries - 1);
+    }
+};
 
 export const fetchData = async (): Promise<{ users: User[]; products: Product[] }> => {
     try {
         const [usersRes, productsRes] = await Promise.all([
-            API.get("/public/randomusers"),
-            API.get("/public/randomproducts"),
+            requestWithRetry(() => API.get("/public/randomusers")),
+            requestWithRetry(() => API.get("/public/randomproducts")),
         ]);
 
         return {
             users: usersRes.data.data.data || [],
             products: productsRes.data.data.data || [],
         };
-    } catch (error) {
-        console.error("Error fetching data:", error);
+    } catch {
         return { users: [], products: [] };
     }
 };

@@ -10,9 +10,29 @@ interface CourseCardProps {
     item: Course;
     index: number;
 }
+import { router } from "expo-router";
+
 export const CourseCard = ({ item, index }: CourseCardProps) => {
     const { toggleBookmark, isBookmarked } = useBookmarks();
     const bookmarked = isBookmarked(item.id);
+
+    const handlePress = () => {
+        router.push({
+            pathname: "/CoursePage/[id]",
+            params: { 
+                id: item.id,
+                title: item.title,
+                description: item.description,
+                image: item.image,
+                rating: item.rating.toString(),
+                price: item.price.toString(),
+                duration: item.duration,
+                instructorName: item.instructor.name,
+                instructorAvatar: item.instructor.avatar,
+                instructorEmail: item.instructor.email
+            }
+        });
+    };
 
     return (
         <Animated.View 
@@ -23,7 +43,7 @@ export const CourseCard = ({ item, index }: CourseCardProps) => {
             <TouchableOpacity 
                 className="bg-neutral-900 rounded-3xl overflow-hidden border border-neutral-800 shadow-sm"
                 activeOpacity={0.8}
-                
+                onPress={handlePress}
             >
                 <Image 
                     source={{ uri: item.image }} 

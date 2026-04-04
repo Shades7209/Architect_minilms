@@ -32,12 +32,14 @@ export const BookmarkProvider = ({ children }: { children: ReactNode }) => {
             }
         };
 
+        checkPermissions();
+
         const savedBookmarks = storage.getString('bookmarks');
         if (savedBookmarks) {
             try {
                 setBookmarks(JSON.parse(savedBookmarks));
-            } catch (e) {
-                console.error('Failed to parse bookmarks', e);
+            } catch {
+                storage.delete('bookmarks');
             }
         }
     }, []);

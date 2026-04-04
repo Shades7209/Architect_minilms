@@ -34,12 +34,9 @@ export default function Index() {
                 fetchData(),
                 new Promise(resolve => setTimeout(resolve, 800))
             ]);
-            console.log(products)
             const combined = combineCourses(products, users);
             setCourses(combined);
-            if (isRefreshing) console.log("Refresh Complete - Data updated");
-        } catch (error) {
-            console.error("Failed to load courses", error);
+        } catch {
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -148,7 +145,6 @@ export default function Index() {
         </SafeAreaView>
     );
 }
-
 
 
 

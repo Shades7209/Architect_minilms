@@ -3,7 +3,7 @@
     "name": "LUMINA",
     "slug": "LUMINA",
     "version": "1.0.0",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/images/icon.png",
     "scheme": "minilms",
     "userInterfaceStyle": "automatic",
@@ -14,7 +14,11 @@
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "LUMINA needs access to your photos to update your profile picture.",
         "NSCameraUsageDescription": "LUMINA needs camera access to take profile pictures.",
-        "NSPhotoLibraryAddUsageDescription": "LUMINA saves images to your photo library."
+        "NSPhotoLibraryAddUsageDescription": "LUMINA saves images to your photo library.",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSAllowsArbitraryLoadsInWebContent": true
+        }
       }
     },
     "android": {
