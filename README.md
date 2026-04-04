@@ -74,8 +74,8 @@ Press `a` for Android, `i` for iOS. No `.env` setup needed — FreeAPI is public
 
 ![Sign In](./docs/screenshots/sign-in.png)
 ![Home](./docs/screenshots/Home.png)
-![CourseDetail](./docs/screenshots/coursedetail.png)
 ![Offiline](./docs/screenshots/offline.png)
+![CourseDetail](./docs/screenshots/coursedetail.png)
 
 ## Architectural Decisions
 
